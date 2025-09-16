@@ -1,0 +1,40 @@
+service: xml-editor
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  stage: dev
+  environment:
+    NODE_OPTIONS: "--experimental-import-meta-resolve"
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Resource: 'arn:aws:logs:*:*:*'
+  apiGateway:
+    binaryMediaTypes:
+      - multipart/form-data
+      - application/xml
+      - '*/*'
+
+functions:
+  main:
+    handler: handler.xml_editor
+    events:
+      - http:
+          path: /
+          method: get
+          cors: true
+      - http:
+          path: /upload
+          method: post
+          cors: true
+
+plugins:
+  - serverless-offline

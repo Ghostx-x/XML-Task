@@ -27,10 +27,10 @@ functions:
   main:
     handler: handler.xml_editor
     events:
-      - http:
-          path: /
-          method: get
-          cors: true
+#      - http:
+#          path: /
+#          method: get
+#          cors: true
       - http:
           path: /upload
           method: post

@@ -62,10 +62,48 @@
 <body>
 <div class="container">
     <h1>Upload XML File</h1>
-    <form id="uploadForm" action="https://zq0rjkggx0.execute-api.us-east-1.amazonaws.com/dev/upload" method="post" enctype="multipart/form-data">
-        <input type="file" name="xmlFile" accept=".xml" required /><br>
-        <button type="submit">Upload & Edit</button>
-    </form>
+    <input type="file" id="xmlFile" accept=".xml" required /><br>
+    <button id="go">Upload & Edit</button>
 </div>
+
+<script>
+    document.getElementById('go').addEventListener('click', async () => {
+        const fileInput = document.getElementById('xmlFile');
+        const file = fileInput.files[0];
+        if (!file) return alert('Select a file');
+
+        try {
+            const sigRes = await fetch('https://zq0rjkggx0.execute-api.us-east-1.amazonaws.com/dev/generate-presigned-url');
+            const { url: putUrl, key } = await sigRes.json();
+
+            const put = await fetch(putUrl, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/xml' },
+                body: file
+            });
+            if (!put.ok) throw new Error('Upload failed');
+
+            const proc = await fetch('https://zq0rjkggx0.execute-api.us-east-1.amazonaws.com/dev/upload', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key })
+            });
+
+            const { downloadUrl } = await proc.json();
+
+
+            if (downloadUrl) {
+                window.open(downloadUrl, '_blank');
+            } else {
+                throw new Error('Download URL not returned');
+            }
+
+        } catch (err) {
+            console.error(err);
+            alert(err.message || 'Something went wrong');
+        }
+    });
+</script>
+
 </body>
 </html>

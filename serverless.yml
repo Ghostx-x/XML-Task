@@ -5,36 +5,55 @@ provider:
   name: aws
   runtime: nodejs18.x
   region: us-east-1
-  stage: dev
   environment:
+    BUCKET_NAME: my-xml-bucket-2025
     NODE_OPTIONS: "--experimental-import-meta-resolve"
-  iam:
-    role:
-      statements:
-        - Effect: Allow
-          Action:
-            - logs:CreateLogGroup
-            - logs:CreateLogStream
-            - logs:PutLogEvents
-          Resource: 'arn:aws:logs:*:*:*'
-  apiGateway:
-    binaryMediaTypes:
-      - multipart/form-data
-      - application/xml
-      - '*/*'
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - s3:ListBucket
+        - s3:PutObject
+      Resource:
+        - arn:aws:s3:::my-xml-bucket-2025
+
+    - Effect: Allow
+      Action:
+        - s3:GetObject
+        - s3:PutObject
+      Resource:
+        - arn:aws:s3:::my-xml-bucket-2025/*
 
 functions:
   main:
     handler: handler.xml_editor
     events:
-#      - http:
-#          path: /
-#          method: get
-#          cors: true
+      - http:
+          path: /
+          method: get
+          cors: true
+      - http:
+          path: /generate-presigned-url
+          method: get
+          cors: true
       - http:
           path: /upload
           method: post
           cors: true
+resources:
+  Resources:
+    MyXmlBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: my-xml-bucket-2025
+        CorsConfiguration:
+          CorsRules:
+            - AllowedOrigins:
+                - "*"
+              AllowedMethods:
+                - GET
+                - PUT
+              AllowedHeaders:
+                - "*"
 
 plugins:
   - serverless-offline

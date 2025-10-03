@@ -1,0 +1,67 @@
+service: xml-editor
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  environment:
+    BUCKET_NAME: my-xml-bucket-2025
+    NODE_OPTIONS: "--experimental-import-meta-resolve"
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - s3:ListBucket
+        - s3:PutObject
+      Resource:
+        - arn:aws:s3:::my-xml-bucket-2025
+
+    - Effect: Allow
+      Action:
+        - s3:GetObject
+        - s3:PutObject
+      Resource:
+        - arn:aws:s3:::my-xml-bucket-2025/*
+
+functions:
+  get:
+    handler: handler.get
+    events:
+      - http:
+          path: /
+          method: get
+          cors: true
+
+  getGeneratedUrl:
+    handler: handler.getGeneratedUrl
+    events:
+      - http:
+          path: /generate-presigned-url
+          method: get
+          cors: true
+
+  upload:
+    handler: handler.upload
+    events:
+      - http:
+          path: /upload
+          method: post
+          cors: true
+resources:
+  Resources:
+    MyXmlBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: my-xml-bucket-2025
+        CorsConfiguration:
+          CorsRules:
+            - AllowedOrigins:
+                - "*"
+              AllowedMethods:
+                - GET
+                - PUT
+              AllowedHeaders:
+                - "*"
+
+plugins:
+  - serverless-offline

@@ -24,17 +24,25 @@ provider:
         - arn:aws:s3:::my-xml-bucket-2025/*
 
 functions:
-  main:
-    handler: handler.xml_editor
+  get:
+    handler: handler.get
     events:
       - http:
           path: /
           method: get
           cors: true
+
+  getGeneratedUrl:
+    handler: handler.getGeneratedUrl
+    events:
       - http:
           path: /generate-presigned-url
           method: get
           cors: true
+
+  upload:
+    handler: handler.upload
+    events:
       - http:
           path: /upload
           method: post
